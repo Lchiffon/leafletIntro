@@ -25,7 +25,7 @@ class: center, middle
 
 ---
 # Leaflet in R
-- Rstudio 开发
+- RStudio 开发
 - 完整的生态链
 
 ```{r}
@@ -100,7 +100,7 @@ m  # Print the map
 
 
 - shiny使用
-  - `rederLeaflet`, `leafletOutput`
+  - `renderLeaflet`, `leafletOutput`
   - `proxyLeaflet`
 
 
@@ -567,6 +567,14 @@ https://github.com/Lchiffon/leafletCN
 [1] https://bhaskarvk.github.io/leaflet-talk-rstudioconf-2017/RstudioConf2017.html#28
 ]
 
+---
+class: inverse, center, middle
+
+![](pic/mapView.png)
+
+.footnote[
+[1] http://environmentalinformatics-marburg.github.io/mapview/introduction.html
+]
 
 ---
 class: inverse, center, middle
