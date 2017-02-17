@@ -577,7 +577,7 @@ class: inverse, center, middle
 ]
 
 ---
-class: inverse, center, middle
+class:  center, middle
 
 # Thanks
 
