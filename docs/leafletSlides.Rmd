@@ -1,0 +1,579 @@
+---
+title: "Leaflet"
+subtitle: "一个可交互的地图工具"
+author: "郎大为"
+date: "2017/02/18"
+output:
+  xaringan::moon_reader:
+    css: zh-CN.css
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+---
+class: center, middle
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+```
+
+
+![](pic/leaflet0.png)
+
+---
+class: center, middle
+![](pic/leaflet.png)
+
+---
+# Leaflet in R
+- Rstudio 开发
+- 完整的生态链
+
+```{r}
+# install.packages("leaflet")
+# install.packages("leafletCN")
+# devtools::install_github("bhaskarvk/leaflet.extras")
+library(leaflet)
+library(leaflet.extras)
+library(leafletCN)
+```
+
+.footnote[
+[1] ~~用R颠覆前端的栗子~~
+]
+
+---
+# 一个简单的例子
+```{r out.width='100%', fig.height=3}
+m <- leaflet() %>%
+  amap() %>%  # Add default OpenStreetMap map tiles
+  addMarkers(lng=121.4487756, lat=31.2268300, popup="We are HERE~")
+m  # Print the map
+```
+
+---
+# Leaflet基本语法
+`leaflet(data) | leafletProxy() %>% `
+```{r eval = F}
+  setView(lat, lon, zoom) # Initial View OR
+  fitBounds(lat_se, lon_se, latnw, lon_nw) # Initial Bounds
+  setMaxBounds(lat_se, lon_se, latnw, lon_nw) # Max Bounds
+  addTiles() | addProviderTiles() | addWMSTiles() #Tiles
+  addMarkers() | addCircleMarkers() |
+    addAwesomeMarkers() | addLabelOnlyMarkers() # Markers
+  addPolylines() | addCircles() |
+  addRectangles() | addPolygons() # Shapes
+  addRasterImage(image) # Raster Data
+  addLegend() | addLayersControl() | addControl() # Controls
+```
+- `leaflet`用于创建一个leaflet对象, 之后用管道函数`%>%`增加新的图层
+- `leaflet|addXXX`有一个额外的`option`参数调整更细的内容
+
+
+---
+# Leaflet学习路线I
+
+
+- 视图控制
+  - `setView`
+  - `fitBounds`
+  - ...
+
+
+- 基础地图
+  - `addTiles`
+  - `addProviderTiles`
+  - `leafletCN::amap`
+
+
+- 增加标注
+  - `addMarker`
+  - `addAwesomeMarkers`
+  - `addCircleMarker`
+  - ...
+
+.footnote[
+[1] ~~地图狂魔的养成路线I~~
+]
+
+---
+# Leaflet学习路线II
+
+
+- shiny使用
+  - `rederLeaflet`, `leafletOutput`
+  - `proxyLeaflet`
+
+
+- 叠加区划
+  - `addTopoJSON`
+  - `addGeoJSON`
+  - `leafletCN`
+
+
+- 添加控制leaflet.extras
+  - `addLegend`
+  - `addLayersControl`
+  - `addControl`
+
+
+- 其他功能
+  - sp包,topojson/geojson
+  - `leaflet.extras`
+  
+.footnote[
+[1] ~~地图狂魔的养成路线II~~
+]
+
+---
+class: inverse, center, middle
+
+# 从基础地图聊起
+
+
+---
+# 基础地图
+支持从各种源获取底层图形, 如OpenStreet, 高德等...
+leaflet完整列表见[这里](http://leaflet-extras.github.io/leaflet-providers/preview/index.html)
+```{r eval = F}
+# openStreetMap
+leaflet() %>% addTiles() 
+# 高德(leafletCN)
+leaflet() %>% amap() 
+# 暗黑风格
+leaflet() %>% addProviderTiles("Thunderforest.SpinalMap")
+# 卫星地图
+leaflet() %>% addProviderTiles("Esri.WorldImagery")
+```
+
+---
+# 瓦片图层
+使用`addProviderTiles("XXX")`来调用这些源, 部分源需要注册
+
+- 卫星地图:
+  - `Esri.WorldImagery`
+- 暗黑风格:
+  - `Thunderforest.SpinalMap`
+- 带海拔的地图:
+  - `OpenTopoMap`
+- 黑白地图:
+  - `Stamen.Toner`
+- NASA夜景:
+  - `NASAGIBS.ViirsEarthAtNight2012`
+
+---
+class: center, middle
+
+![](pic/provider1.png)
+
+`leaflet() %>% addProviderTiles("Esri.WorldImagery")`
+
+.footnote[
+[1] ~~试试放大了能不能看到家门口~~
+]
+
+---
+class: center, middle
+
+![](pic/provider2.png)
+
+`leaflet() %>% addProviderTiles("Thunderforest.SpinalMap")`
+
+.footnote[
+[1] ~~PRG的风格~~
+]
+
+---
+class: center, middle
+
+![](pic/provider3.png)
+
+`leaflet() %>% addProviderTiles("OpenTopoMap")`
+
+.footnote[
+[1] ~~好像回到了十年前的纸质地图~~
+]
+
+---
+class: center, middle
+
+![](pic/provider4.png)
+
+`leaflet() %>% addProviderTiles("Stamen.Toner")`
+
+.footnote[
+[1] ~~黑白风,真的不是电脑坏了?~~
+]
+
+---
+class: center, middle
+
+![](pic/provider5.png)
+
+`leaflet() %>% addProviderTiles("NASAGIBS.ViirsEarthAtNight2012")`
+
+.footnote[
+[1] ~~完美夜景~~
+]
+
+---
+class: inverse, center, middle
+
+# leaflet的实现过程
+
+
+---
+# htmlwidgets
+一个连接R与JavaScript的桥梁, 实现过程如下:
+
+- 将数据读到R里面
+
+- 在R里面完成数据的处理过程
+
+- 将数据转化为一个JSON文件
+
+- 数据传给JavaScript
+
+- JavaScript处理数据
+
+- JavaScript完成数据的**动态展示**
+
+
+.footnote[
+[1] ~~下页有讲解图~~
+]
+
+---
+class:  center, middle
+
+# htmlwidgets
+
+![](pic/htmlwidgets.png)
+
+.footnote[
+[1] http://bioconnector.org/workshops/r-interactive-viz.html
+
+[2] ~~好像还不如看上页~~
+]
+
+
+---
+class:  center, middle
+
+![](pic/sourcecode.png)
+
+.footnote[
+[2] ~~多少R包因为这个问题被认定成了Javascript包~~
+]
+
+
+---
+# 一个leaflet对象
+
+```{r}
+l1 = leaflet()
+class(l1)
+names(l1)
+```
+
+- 一个传统S3对象, 没有存储任何前端的内容
+
+
+---
+# 一个leaflet对象
+
+- 增加图层后, 会保存在`l2$x$calls`里面
+  - 强制为NULL后跟原本未增加的图层一致
+- 打印后会传给前端来展示
+
+```{r}
+l2 = leaflet() %>% addTiles()
+class(l2)
+names(l2)
+```
+```{r}
+l3 = l2
+l3$x$calls = NULL
+all.equal(l1, l3)
+```
+
+---
+# addTiles背后的实现
+
+```js
+methods.addTiles = function (urlTemplate, layerId, group, options) {
+  this.layerManager.addLayer(_leaflet2.default.tileLayer(urlTemplate, options), "tile", layerId, group);
+};
+```
+
+```js
+_createClass(LayerManager, [{
+    key: "addLayer",
+    value: function addLayer(layer, category, layerId, group, ctGroup, ctKey) {
+      var _this = this;
+
+....SKIP 500 Lines...
+      return oldLayer;
+    }
+  }
+```
+
+.footnote[
+[1] [从Github上查到](https://github.com/rstudio/leaflet/search?l=JavaScript&q=addTiles&utf8=%E2%9C%93)
+]
+
+
+
+---
+class: inverse, center, middle
+
+# 一个例子
+
+
+
+---
+# 例子2
+```{r eval = F}
+library(leaflet)
+iconList = awesomeIconList(
+  "home" = makeAwesomeIcon(icon = "home",markerColor = "skyblue"),
+  "weixin" = makeAwesomeIcon(icon = "cutlery",markerColor = "red"),
+  "bank" = makeAwesomeIcon(icon = "plus-sign",markerColor = "orange"),
+  "automobile" = makeAwesomeIcon(icon = "trash",markerColor = "purple"),
+  "coffee" = makeAwesomeIcon(icon = "book")
+)
+
+geo = data.frame(lon = rep(121.44, 5),
+                 lat = rep(31.22, 5),
+                 city = rep("Shanghai", 5))
+```
+
+---
+# 例子2
+```{r eval = F}
+geo$lon = geo$lon+rnorm(5,0,0.003)
+geo$lat = geo$lat+rnorm(5,0,0.003)
+geo$type = c("home",
+             "weixin",
+             "bank" ,
+             "automobile", 
+             "coffee" )
+
+leaflet(geo) %>% addProviderTiles("CartoDB.Positron") %>%
+  addMiniMap() %>% 
+  addAwesomeMarkers(icon = ~iconList[type])
+```
+
+
+---
+# 例子2
+
+```{r out.width='100%',echo=FALSE, fig.height=6, warning=F, message=FALSE}
+library(leaflet)
+iconList = awesomeIconList(
+  "home" = makeAwesomeIcon(icon = "home",markerColor = "skyblue"),
+  "weixin" = makeAwesomeIcon(icon = "cutlery",markerColor = "red"),
+  "bank" = makeAwesomeIcon(icon = "plus-sign",markerColor = "orange"),
+  "automobile" = makeAwesomeIcon(icon = "trash",markerColor = "purple"),
+  "coffee" = makeAwesomeIcon(icon = "book")
+)
+
+geo = data.frame(lon = rep(121.44, 5),
+                 lat = rep(31.22, 5),
+                 city = rep("Shanghai", 5))
+geo$lon = geo$lon+rnorm(5,0,0.003)
+geo$lat = geo$lat+rnorm(5,0,0.003)
+geo$type = c("home",
+             "weixin",
+             "bank" ,
+             "automobile", 
+             "coffee" )
+
+leaflet(geo) %>% addProviderTiles("CartoDB.Positron") %>%
+  addMiniMap() %>% 
+  addAwesomeMarkers(icon = ~iconList[type])
+```
+
+---
+class: inverse, center, middle
+
+# leafletCN
+
+<span style="color:white;">
+中国地图数据(细分到区县)<br/>
+高德地图底图<br/>
+一些打包好的函数
+</span>
+
+---
+# 常用函数
+
+函数 | 功能
+---|---
+`regionNames` |  返回某个地图的区域名
+`demomap` |  传入地图名绘制示例地图
+`geojsonMap` | 将一个分层颜色图绘制在一个实时地图上
+`amap` | 在leaflet地图上叠加高德地图
+`read.geoShape` | 读取一个geojson的对象,保存成spdataframe,以方便leaflet调用
+`leafletGeo` | 用地图名以及一个数据框创建一个sp的对象
+
+.footnote[
+[1] [这里查看完整介绍](https://github.com/Lchiffon/leafletCN)
+]
+
+
+---
+class: inverse, center, middle
+
+# 从一个段子讲起<br/><br/>
+<span style="color:white;">
+受朋友委托，大家帮个忙：北京人，女，26岁，未婚，1.68米，体重50公斤，英国海归。貌美，爱好健身。目前在一家世界500强做产品经理，工作稳定，年薪近90万。三环内有四套学区房，一套按揭，三套全款。 名下有一辆宝马7系，上班时开。父母均是国家领导干部。朋友和家人现在非常着急，<br/>**想让介绍一个效果比较好的防霾口罩。**
+</span>
+
+.footnote[
+[1] 段网侵删 
+]
+
+---
+# 数据来源
+- http://www.pm25.in/rank
+![](pic/web.png)
+
+---
+# leafletCN 
+
+```{r eval=F}
+library(XML)
+library(leafletCN)
+table = readHTMLTable("http://www.pm25.in/rank",  
+                      encoding="UTF-8",stringsAsFactors=F)[[1]]
+```
+```{r echo=F,eval=F}
+load("aqi.Rdata")
+```
+```{r eval=F}
+dat = table[,2:3]
+names(dat) = c("city","AQI")
+dat$AQI = as.numeric(dat$AQI)
+geojsonMap(dat, "city",
+           popup =  paste0(dat$city,":",dat$AQI),
+           palette = "Reds", legendTitle = "AQI")
+```
+
+
+
+
+---
+# leafletCN 
+<iframe src="pic/leafletCN.html" width="100%" height="500px"></iframe>
+
+
+
+---
+# leafalet VS. ggplot2
+
+.pull-left[
+1. 动态图啊动态图
+
+1. 满足现代各种交互的需求
+
+1. ~~可以用来跟你们家前端工程师Battle~~
+]
+
+.pull-right[
+1. 静态图啊静态图
+
+1. 方便用ggplot语法修饰
+
+1. 数据较老,需要自己获取靠谱数据(shp, baidumap)
+
+![](pic/baidu.jpg)
+
+]
+
+.footnote[
+[1] http://www.toutiao.com/i6387968890785235458/
+]
+
+---
+# leaflet VS. REmap
+
+.pull-left[
+1. openstreetMap, mapbox, 高德地图实现
+
+2. 完整的生态链, 多个包支持
+
+3. 维护团队靠谱
+]
+
+.pull-right[
+1. 好看
+
+1. 也是动态效果
+
+1. 功能不全面(sp支持, popup等)
+
+1. 仅有百度地图支持
+
+1. 不是htmlwidgets实现, 难以扩展
+
+![](pic/REmap.png)
+]
+
+.footnote[
+[1] ~~如果谁有兴趣把REmap重写掉~~
+]
+
+
+---
+class: inverse, center, middle
+
+# Other Leaflet
+
+
+---
+![](pic/dark.png)
+
+.footnote[
+[Codes](./Untitled.html#21)
+]
+
+---
+![](pic/demomap.png)
+
+.footnote[
+https://github.com/Lchiffon/leafletCN
+]
+
+---
+![](pic/heat.png)
+
+
+.footnote[
+[1] http://rpubs.com/bhaskarvk/leaflet-heat
+]
+
+
+---
+![](pic/night.png)
+.footnote[
+[Codes](./Untitled.html#23)
+]
+
+
+---
+![](pic/six.png)
+
+.footnote[
+[1] https://bhaskarvk.github.io/leaflet-talk-rstudioconf-2017/RstudioConf2017.html#28
+]
+
+
+---
+class: inverse, center, middle
+
+# Thanks
+
+Email: [chiffonlang@icloud.com](chiffonlang@icloud.com)<br/>
+Blog: [七风阁](langdawei.com)<br/>
+Weibo: [郎大为Chiffon](郎大为Chiffon)
+

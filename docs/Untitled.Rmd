@@ -1,0 +1,378 @@
+---
+title: "Leaflet"
+author: "郎大为"
+date: "2017/02/13"
+output:
+  xaringan::moon_reader:
+    css: zh-CN.css
+    lib_dir: libs
+    nature:
+      highlightStyle: github
+      highlightLines: true
+---
+
+```{r setup, include=FALSE}
+options(htmltools.dir.version = FALSE)
+```
+
+# Leaflet
+![](pic/leaflet0.png)
+
+![](pic/leaflet.png)
+
+---
+# Leaflet in R
+- Rstudio 开发
+- 完整的生态链
+
+```{r}
+# install.packages("leaflet")
+# install.packages("leafletCN")
+# devtools::install_github("bhaskarvk/leaflet.extras")
+library(leaflet)
+library(leaflet.extras)
+library(leafletCN)
+```
+
+---
+# 一个简单的例子
+```{r out.width='100%', fig.height=3}
+m <- leaflet() %>%
+  amap() %>%  # Add default OpenStreetMap map tiles
+  addMarkers(lng=121.48024, lat=31.23631, popup="Shanghai")
+m  # Print the map
+```
+
+
+---
+# Leaflet学习指南
+
+--
+- 视图控制(`setView`,`fitBounds`,...)
+
+--
+- 基础地图
+  - `addTiles`
+  - `addProviderTiles`
+
+--
+- 增加标注
+  - `addMarker`
+  - `addAwesomeMarkers`
+
+--
+- shiny使用(`proxyLeaflet`)
+
+--
+- 叠加区划
+  - `leafletCN`
+
+--
+- 其他功能(sp包,topojson/geojson)
+
+---
+# 视图控制
+
+`?setView()`来查看这部分的帮助文档.
+
+- `setView()` 设置地图的中心和缩放比例
+- `fitBounds()`设置视图在`[lng1,lat1]-[lng2,lat2]`的长方形中
+- `setMaxBounds`设置视图在`[lng1,lat1]-[lng2,lat2]`的长方形中,并放大至最大
+- `clearBounds()`清除设置的边界, 如果`leaflet`有绑定数据, 将会定位到图层的数据中.
+
+```{r eval=F}
+library(leaflet)
+m = leaflet() %>% addTiles() %>% setView(-71.0382679, 42.3489054, zoom = 18)
+m %>% fitBounds(-72, 40, -70, 43)
+m %>% setMaxBounds(-72, 40, -70, 43)
+m %>% clearBounds()  # world view
+```
+
+---
+# leaflet支持数据
+- R基础对象
+  - 经纬度(lng/lat)矩阵
+  - 含名为lng/lat的数据框
+- 从[sp包](http://cran.rstudio.com/package=sp)导入的对象
+  - `SpatialPoints`
+  - `Line/Lines`
+  - `SpatialLines`
+  - `Polygon/Polygons`
+  - `SpatialPolygons`
+- 从[maps包](http://cran.rstudio.com/package=maps)导入的数据
+
+
+---
+# 基础对象支持
+- 向leaflet传入一个数据框或者矩阵, 并包含以下元素:
+  - `lat`或者是`latitude`变量
+  - `lng`, `long`或者是`longitude`变量
+  
+```{r eval=F}
+lats = names[grep("^(lat|latitude)$", names,
+                  ignore.case = TRUE)]
+lngs = names[grep("^(lon|lng|long|longitude)$", names,
+                  ignore.case = TRUE)]
+```
+
+---
+# 一个简单的例子
+```{r eval=F}
+df = data.frame(Lat = 1:10, Long = rnorm(10))
+# 1 
+leaflet(df) %>% addCircles()
+# 2
+leaflet(df) %>% addCircles(lng = ~Long, lat = ~Lat)
+# 3
+leaflet() %>% addCircles(data = df)
+# 4
+leaflet() %>% addCircles(data = df, lat = ~ Lat, lng = ~ Long)
+```
+
+
+
+---
+# sp
+```{r eval=F}
+library(sp)
+## Loading required package: methods
+Sr1 = Polygon(cbind(c(2, 4, 4, 1, 2), c(2, 3, 5, 4, 2)))
+Sr2 = Polygon(cbind(c(5, 4, 2, 5), c(2, 3, 2, 2)))
+Sr3 = Polygon(cbind(c(4, 4, 5, 10, 4), c(5, 3, 2, 5, 5)))
+Sr4 = Polygon(cbind(c(5, 6, 6, 5, 5), c(4, 4, 3, 3, 4)),
+              hole = TRUE)
+Srs1 = Polygons(list(Sr1), "s1")
+Srs2 = Polygons(list(Sr2), "s2")
+Srs3 = Polygons(list(Sr4, Sr3), "s3/4")
+SpP = SpatialPolygons(list(Srs1, Srs2, Srs3), 1:3)
+leaflet(height = "300px") %>% addPolygons(data = SpP)
+```
+
+---
+# maps
+```{r out.width='100%', fig.height=4}
+library(maps)
+mapStates = map("state", fill = TRUE, plot = FALSE)
+leaflet(data = mapStates) %>% addTiles() %>%
+  addPolygons(fillColor = topo.colors(10, alpha = NULL), 
+              stroke = FALSE)
+```
+
+---
+# 瓦片图层
+支持从各种源获取底层图形, 如OpenStreet, 高德等...
+leaflet完整列表见[这里](http://leaflet-extras.github.io/leaflet-providers/preview/index.html)
+```{r eval = F}
+# openStreetMap
+leaflet() %>% addTiles() 
+# 高德(leafletCN)
+leaflet() %>% amap() 
+# 暗黑风格
+leaflet() %>% addProviderTiles("Thunderforest.SpinalMap")
+# 卫星地图
+leaflet() %>% addProviderTiles("Esri.WorldImagery")
+```
+
+---
+# 瓦片图层
+使用`addProviderTiles("XXX")`来调用这些源, 部分源需要注册
+
+- 暗黑风格:
+  - `Esri.WorldImagery`
+- 卫星地图:
+  - `Esri.WorldImagery`
+- 带海拔的地图:
+  - `OpenTopoMap`
+- 黑白地图:
+  - `Stamen.Toner`
+- NASA气象地图:
+  - `NASAGIBS.ModisTerraChlorophyll`
+- NASA夜景:
+  - `NASAGIBS.ViirsEarthAtNight2012`
+
+---
+# marker
+marker 是一类点标注, 有以下的标注方式:
+- marker
+  - customize marker: 自定义点的图标
+- circleMarker
+- awesomeMarker: 各种Icon
+- 通用方法
+  - `clusterOptions = markerClusterOptions`
+  - `popup`
+
+---
+# 例子1
+```{r eval =F}
+# 制作经纬度数据
+library(REmap)
+dat = get_geo_position(c("beijing", "shanghai", "guangzhou","wuhan",'kunming',"xian","zhengzhou"))
+dat = rbind(dat,dat,dat)
+dat$lon = dat$lon + rnorm(21,0,3)
+dat$lat = dat$lat + rnorm(21,0,3)
+dat$type = sample(c("sword","shield"),21,replace = T)
+# 制作Icons
+warIcons <- iconList(
+  sword = makeIcon("Sword.png", 
+                  iconWidth = 80, iconHeight = 80,
+                  iconAnchorX = 40, iconAnchorY = 40),
+  shield = makeIcon("shield.png", 
+                  iconWidth = 80, iconHeight = 80,
+                  iconAnchorX = 40,  iconAnchorY = 40)
+)
+# 绘制到暗黑地图, 呜哈哈~
+leaflet(dat) %>% 
+  setView(lng=121.48024, lat=31.23631, zoom=5) %>% 
+  addProviderTiles("Thunderforest.SpinalMap") %>% 
+  addMarkers(icon=~warIcons[type])
+```
+
+
+---
+# 例子1
+```{r out.width='100%',echo=FALSE, fig.height=6, warning=F, message=FALSE}
+library(REmap)
+dat = get_geo_position(c("beijing", "shanghai", "guangzhou","wuhan",'kunming',"xian","zhengzhou"))
+dat = rbind(dat,dat,dat)
+dat$lon = dat$lon + rnorm(21,0,3)
+dat$lat = dat$lat + rnorm(21,0,3)
+dat$type = sample(c("sword","shield"),21,replace = T)
+warIcons <- iconList(
+  sword = makeIcon("./Sword.png", 
+                  iconWidth = 80,
+                  iconHeight = 80,
+                  iconAnchorX = 40,
+                  iconAnchorY = 40),
+  shield = makeIcon("./shield.png", 
+                  iconWidth = 80,
+                  iconHeight = 80,
+                  iconAnchorX = 40,
+                  iconAnchorY = 40)
+)
+
+
+leaflet(dat) %>% 
+  setView(lng=121.48024, lat=31.23631, zoom=5) %>% 
+  addProviderTiles("Thunderforest.SpinalMap") %>% 
+  addMarkers(icon=~warIcons[type])
+```
+
+
+---
+# AwesomeIcon
+- [www.iconfinder.com](www.iconfinder.com)
+- awesomeIcon
+  - [fontIcons](http://fontawesome.io/icons/)
+  - [glyphicon](http://getbootstrap.com/components/#glyphicons)
+  - [Ionicons](http://ionicons.com/)
+
+```{r eval =F}
+myIcon = makeAwesomeIcon(icon = "home", library = "glyphicon",
+  markerColor = "blue", iconColor = "white", spin = FALSE,
+  extraClasses = NULL)
+leaflet(dat) %>% 
+  setView(lng=121.48024, lat=31.23631, zoom=5) %>% 
+  addProviderTiles("NASAGIBS.ViirsEarthAtNight2012") %>% 
+  addAwesomeMarkers(icon=myIcon)
+```
+
+---
+# 
+```{r out.width='100%',echo=FALSE, fig.height=6, warning=F, message=FALSE}
+myIcon = makeAwesomeIcon(icon = "home", library = "glyphicon",
+  markerColor = "blue", iconColor = "white", spin = FALSE,
+  extraClasses = NULL)
+leaflet(dat) %>% 
+  setView(lng=121.48024, lat=31.23631, zoom=5) %>% 
+  addProviderTiles("NASAGIBS.ViirsEarthAtNight2012") %>% 
+  addAwesomeMarkers(icon=myIcon)
+```
+
+---
+# 例子2
+```{r eval = F}
+library(leaflet)
+iconList = awesomeIconList(
+  "home" = makeAwesomeIcon(icon = "home",markerColor = "skyblue"),
+  "weixin" = makeAwesomeIcon(icon = "cutlery",markerColor = "red"),
+  "bank" = makeAwesomeIcon(icon = "plus-sign",markerColor = "orange"),
+  "automobile" = makeAwesomeIcon(icon = "trash",markerColor = "purple"),
+  "coffee" = makeAwesomeIcon(icon = "book")
+)
+
+geo = get_geo_position("shanghai")
+geo = rbind(geo,geo,geo,geo,geo)
+geo$lon = geo$lon+rnorm(5,0,0.003)
+geo$lat = geo$lat+rnorm(5,0,0.003)
+geo$type = c("home",
+             "weixin",
+             "bank" ,
+             "automobile", 
+             "coffee" )
+
+leaflet(geo) %>% addProviderTiles("CartoDB.Positron") %>%
+  addAwesomeMarkers(icon = ~iconList[type])
+```
+
+
+---
+# 例子2
+
+```{r out.width='100%',echo=FALSE, fig.height=6, warning=F, message=FALSE}
+library(leaflet)
+iconList = awesomeIconList(
+  "home" = makeAwesomeIcon(icon = "home",markerColor = "skyblue"),
+  "weixin" = makeAwesomeIcon(icon = "cutlery",markerColor = "red"),
+  "bank" = makeAwesomeIcon(icon = "plus-sign",markerColor = "orange"),
+  "automobile" = makeAwesomeIcon(icon = "trash",markerColor = "purple"),
+  "coffee" = makeAwesomeIcon(icon = "book")
+)
+
+geo = get_geo_position("shanghai")
+geo = rbind(geo,geo,geo,geo,geo)
+geo$lon = geo$lon+rnorm(5,0,0.003)
+geo$lat = geo$lat+rnorm(5,0,0.003)
+geo$type = c("home",
+             "weixin",
+             "bank" ,
+             "automobile", 
+             "coffee" )
+
+leaflet(geo) %>% addProviderTiles("CartoDB.Positron") %>%
+  addAwesomeMarkers(icon = ~iconList[type])
+```
+
+---
+# shiny
+离产品只差最后一步
+- Shiny的函数:
+  - `leafletOutput`
+  - `renderLeflet`
+- `observe`+`leafletProxy`
+  - 实现无须重复加载的leaflet
+
+---
+# leafletCN 
+
+```{r eval=F}
+library(XML)
+library(leafletCN)
+table = readHTMLTable("http://www.pm25.in/rank",  
+                      encoding="UTF-8",stringsAsFactors=F)[[1]]
+```
+```{r echo=F,eval=F}
+load("aqi.Rdata")
+```
+```{r eval=F}
+dat = table[,2:3]
+names(dat) = c("city","AQI")
+dat$AQI = as.numeric(dat$AQI)
+geojsonMap(dat, "city",
+           popup =  paste0(dat$city,":",dat$AQI),
+           palette = "Reds", legendTitle = "AQI")
+```
+
+
+---
+# leafletCN 
+<iframe src="pic/leafletCN.html" width="100%" height="500px"></iframe>
