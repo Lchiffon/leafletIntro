@@ -1,8 +1,8 @@
 @import url(https://fonts.useso.com/css?family=Yanone+Kaffeesatz);
 
-body { font-family: 'Droid Serif', 'Palatino Linotype', 'Book Antiqua', Palatino, 'Songti SC', serif; }
+body { font-family:  'Microsoft YaHei'; }
 h1, h2, h3 {
-  font-family: 'Yanone Kaffeesatz', 'Palatino Linotype', 'Book Antiqua', Palatino, 'STHeiti', 'SimHei', 'Microsoft YaHei';
+  font-family: 'Yanone Kaffeesatz', 'Microsoft YaHei';
   font-weight: normal;
 }
 a, a > code {

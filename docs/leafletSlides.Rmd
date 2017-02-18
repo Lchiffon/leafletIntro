@@ -29,12 +29,14 @@ class: center, middle
 - 完整的生态链
 
 ```{r}
-# install.packages("leaflet")
+# devtools::install_github("rstudio/leaflet")
 # install.packages("leafletCN")
+# install.packages("mapview")
 # devtools::install_github("bhaskarvk/leaflet.extras")
 library(leaflet)
-library(leaflet.extras)
+library(mapview)
 library(leafletCN)
+# library(leaflet.extras)
 ```
 
 .footnote[
@@ -397,7 +399,7 @@ leaflet(geo) %>% addProviderTiles("CartoDB.Positron") %>%
 class: inverse, center, middle
 
 # leafletCN
-
+<br/>
 <span style="color:white;">
 中国地图数据(细分到区县)<br/>
 高德地图底图<br/>
@@ -467,6 +469,10 @@ geojsonMap(dat, "city",
 <iframe src="pic/leafletCN.html" width="100%" height="500px"></iframe>
 
 
+---
+class: inverse, center, middle
+
+# 跟几个包的比较
 
 ---
 # leafalet VS. ggplot2
@@ -531,6 +537,10 @@ class: inverse, center, middle
 
 
 ---
+class:  center, middle
+
+# 自定义的Icon
+
 ![](pic/dark.png)
 
 .footnote[
@@ -538,6 +548,10 @@ class: inverse, center, middle
 ]
 
 ---
+class:  center, middle
+
+# 城市区县leafletCN
+
 ![](pic/demomap.png)
 
 .footnote[
@@ -545,6 +559,8 @@ https://github.com/Lchiffon/leafletCN
 ]
 
 ---
+class:  center, middle
+# 热力图leaflet.extra
 ![](pic/heat.png)
 
 
@@ -554,6 +570,8 @@ https://github.com/Lchiffon/leafletCN
 
 
 ---
+class:  center, middle
+
 ![](pic/night.png)
 .footnote[
 [Codes](./Untitled.html#23)
@@ -561,6 +579,10 @@ https://github.com/Lchiffon/leafletCN
 
 
 ---
+class:  center, middle
+
+# 像素地图
+
 ![](pic/six.png)
 
 .footnote[
@@ -568,7 +590,9 @@ https://github.com/Lchiffon/leafletCN
 ]
 
 ---
-class: inverse, center, middle
+class:  center, middle
+
+# mapview
 
 ![](pic/mapView.png)
 
@@ -576,8 +600,20 @@ class: inverse, center, middle
 [1] http://environmentalinformatics-marburg.github.io/mapview/introduction.html
 ]
 
+
 ---
 class:  center, middle
+
+# mapview
+
+![](pic/mapview2.png)
+
+.footnote[
+[1] http://environmentalinformatics-marburg.github.io/mapview/popups/html/popups.html
+]
+
+---
+class: inverse, center, middle
 
 # Thanks
 
